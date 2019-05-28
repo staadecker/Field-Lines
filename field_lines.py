@@ -1,147 +1,118 @@
-import matplotlib.pyplot as plt
-import math
-import matplotlib.collections as collections
+from helper import *
 
-K_CONSTANT = 9 * 10 ** 9
-Q_CONSTANT = 1.602 * 10 ** (-19)
-CHARGE_TO_RADIUS_FACTOR = 0.1 / Q_CONSTANT
-STARTING_POINTS_PER_CHARGE = 14
-SECTOR_LENGTH = 0.01
-SIZE_OF_GRAPH = 5
+STARTING_POINTS_PER_CHARGE = 16 / Q_CONSTANT
+LINE_SEGMENT_LENGTH = 0.01
 
 
-class Vector:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+def get_points_around_charge(charge):
+    starting_vectors = []
 
-    def get_magnitude(self):
-        return math.sqrt(self.x ** 2 + self.y ** 2)
+    radius = charge.get_radius()
 
-    def get_angle(self):
-        return math.atan2(self.y, self.x)
+    step = 2 * math.pi / (charge.magnitude * STARTING_POINTS_PER_CHARGE)
+    offset = step / 2
+    angle = offset
+    while angle < 2 * math.pi + offset:
+        starting_vectors.append(charge.position.add(Vector.create(radius, angle)))
+        angle += step
 
-    def get_tuple(self):
-        return self.x, self.y
-
-    def add(self, vector):
-        return Vector(self.x + vector.x, self.y + vector.y)
-
-    def subtract(self, vector):
-        return Vector(self.x - vector.x, self.y - vector.y)
-
-    def __str__(self) -> str:
-        return f"({self.x}, {self.y})"
-
-
-class Charge:
-    def __init__(self, is_positive, magnitude, position_vector):
-        self.is_positive = is_positive
-        self.magnitude = magnitude
-        self.position_vector = position_vector
-
-    def get_radius(self):
-        return self.magnitude * CHARGE_TO_RADIUS_FACTOR
-
-    def vector_is_inside(self, vector: Vector):
-        return self.position_vector.subtract(vector).get_magnitude() < self.get_radius()
-
-
-def draw_lines(lines_to_draw):
-    line_collection = collections.LineCollection(lines_to_draw)
-    axis = plt.gca()
-    axis.add_collection(line_collection)
-
-
-def create_vector(magnitude, angle):
-    return Vector(magnitude * math.cos(angle), magnitude * math.sin(angle))
+    return starting_vectors
 
 
 def calculate_field(charges, position):
     net_field = Vector(0, 0)
 
     for charge in charges:
-        if charge.is_positive:
-            vector = position.subtract(charge.position_vector)
+        if charge.repels:
+            vector = position.subtract(charge.position)
         else:
-            vector = charge.position_vector.subtract(position)
+            vector = charge.position.subtract(position)
         magnitude = K_CONSTANT * charge.magnitude / (vector.get_magnitude() ** 2)
         angle = vector.get_angle()
 
-        net_field = net_field.add(create_vector(magnitude, angle))
+        net_field = net_field.add(Vector.create(magnitude, angle))
 
     return net_field
 
 
-def draw_charges(charges):
-    axis = plt.gca()
-    for charge in charges:
-        circle = plt.Circle(charge.position_vector.get_tuple(), charge.get_radius(),
-                            color="g" if charge.is_positive else "r")
-
-        axis.add_artist(circle)
-
-
-def get_starting_vectors(charges):
-    starting_vectors = []
-
-    for charge in charges:
-        if charge.is_positive:
-            delta = 2 * math.pi / STARTING_POINTS_PER_CHARGE
-            for counter in range(STARTING_POINTS_PER_CHARGE):
-                angle = counter * delta
-                starting_vectors.append(charge.position_vector.add(create_vector(charge.get_radius(), angle)))
-
-    return starting_vectors
-
-
-def setup_graph():
-    axis = plt.gca()
-    axis.set_xlim((-SIZE_OF_GRAPH, SIZE_OF_GRAPH))
-    axis.set_ylim((-SIZE_OF_GRAPH, SIZE_OF_GRAPH))
-
-
 def is_valid_end(end_vector, charges):
     for charge in charges:
-        if charge.vector_is_inside(end_vector):
+        if charge.is_coordinates_inside_radius(end_vector):
             return False
 
-    return -SIZE_OF_GRAPH < end_vector.x < SIZE_OF_GRAPH and -SIZE_OF_GRAPH < end_vector.y < SIZE_OF_GRAPH
+    return True
 
 
-def draw_field(charges):
-    setup_graph()
-    draw_charges(charges)
+def generate_lines_for_starting_point(starting_point, charges, reverse_follow=False):
+    next_start = starting_point
     lines = []
-    starting_points = get_starting_vectors(charges)
-    if not starting_points:
-        # Go reverse
-        for charge in charges:
-            charge.is_positive = not charge.is_positive
+    magnitudes = []
+    for i in range(10000):
+        field = calculate_field(charges, next_start)
 
-        starting_points = get_starting_vectors(charges)
-    for start in starting_points:
-        next_start = start
-        for i in range(100000):
-            field = calculate_field(charges, next_start)
-            end = next_start.add(create_vector(SECTOR_LENGTH, field.get_angle()))
+        short_vector = Vector.create(LINE_SEGMENT_LENGTH, field.get_angle())
 
-            if not is_valid_end(end, charges):
-                break
+        if reverse_follow:
+            end = next_start.subtract(short_vector)
+        else:
+            end = next_start.add(short_vector)
 
+        if not is_valid_end(end, charges):
+            break
+
+        if Graph.is_within_borders(end):
             lines.append([next_start.get_tuple(), end.get_tuple()])
-            next_start = end
-    draw_lines(lines)
-    plt.show()
+            magnitudes.append(field.get_magnitude())
+
+        next_start = end
+
+    return lines, magnitudes
+
+
+def main(charges):
+    Graph.setup()
+
+    [Graph.draw_charge(charge) for charge in charges]
+
+    has_repels = False
+    for charge in charges:
+        if charge.repels:
+            has_repels = True
+
+    if not has_repels:
+        flip_charges(charges)
+
+    lines, magnitudes = get_field_lines(charges)
+
+    Graph.draw_lines(lines, convert_magnitudes_to_colors(magnitudes))
+    Graph.show_graph()
+
+
+def flip_charges(charges):
+    for charge in charges:
+        charge.repels = not charge.repels
+
+
+def get_field_lines(charges):
+    lines = []
+    magnitudes = []
+    for index, charge in enumerate(charges):
+        print(f"Charge ({index} of {len(charges)})...", end="")
+
+        if charge.repels:
+            for starting_point in get_points_around_charge(charge):
+                (a, b) = generate_lines_for_starting_point(starting_point, charges)
+                lines += a
+                magnitudes += b
+
+        print("Done.")
+    return lines, magnitudes
 
 
 if __name__ == '__main__':
     CHARGES = [
-        Charge(True, Q_CONSTANT, Vector(0, 1)),
-        Charge(False, Q_CONSTANT, Vector(-2, -2)),
-        Charge(False, Q_CONSTANT, Vector(2, -2)),
-        Charge(True, 3 * Q_CONSTANT, Vector(0, -2)),
-        Charge(False, Q_CONSTANT, Vector(3, -2))
+        Item(False, Q_CONSTANT, Vector(0, 1)),
+        Item(False, Q_CONSTANT, Vector(0, -1))
     ]
 
-    draw_field(CHARGES)
+    main(CHARGES)
