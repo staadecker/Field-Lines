@@ -80,7 +80,7 @@ def get_field_lines(charges):
     lines = []
     magnitudes = []
     for index, charge in enumerate(charges):
-        print(f"Charge ({index} of {len(charges)})...", end="")
+        print(f"Calculating field for charge ({index} of {len(charges)})...", end="")
 
         if charge.repels:
             for starting_point in get_points_around_charge(charge):

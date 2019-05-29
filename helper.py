@@ -61,6 +61,7 @@ class Graph:
         axis = plt.gca()
         axis.set_xlim((-SIZE_OF_GRAPH, SIZE_OF_GRAPH))
         axis.set_ylim((-SIZE_OF_GRAPH, SIZE_OF_GRAPH))
+        axis.set_aspect('equal')
 
     @staticmethod
     def draw_lines(lines_to_draw, colors=None):
