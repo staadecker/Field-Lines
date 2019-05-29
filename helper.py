@@ -62,7 +62,7 @@ class Graph:
         axis.set_ylim((-SIZE_OF_GRAPH, SIZE_OF_GRAPH))
 
     @staticmethod
-    def draw_lines(lines_to_draw, colors):
+    def draw_lines(lines_to_draw, colors=None):
         line_collection = collections.LineCollection(lines_to_draw, colors=colors)
         axis = plt.gca()
         axis.add_collection(line_collection)

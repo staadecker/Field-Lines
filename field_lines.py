@@ -1,7 +1,8 @@
 from helper import *
 
-STARTING_POINTS_PER_CHARGE = 16 / Q_CONSTANT
+STARTING_POINTS_PER_CHARGE = 8 / Q_CONSTANT
 LINE_SEGMENT_LENGTH = 0.01
+USE_COLORS = False
 
 
 def get_points_around_charge(charge):
@@ -12,7 +13,7 @@ def get_points_around_charge(charge):
     step = 2 * math.pi / (charge.magnitude * STARTING_POINTS_PER_CHARGE)
     offset = step / 2
     angle = offset
-    while angle < 2 * math.pi + offset:
+    while angle < 2 * math.pi:
         starting_vectors.append(charge.position.add(Vector.create(radius, angle)))
         angle += step
 
@@ -69,25 +70,6 @@ def generate_lines_for_starting_point(starting_point, charges, reverse_follow=Fa
     return lines, magnitudes
 
 
-def main(charges):
-    Graph.setup()
-
-    [Graph.draw_charge(charge) for charge in charges]
-
-    has_repels = False
-    for charge in charges:
-        if charge.repels:
-            has_repels = True
-
-    if not has_repels:
-        flip_charges(charges)
-
-    lines, magnitudes = get_field_lines(charges)
-
-    Graph.draw_lines(lines, convert_magnitudes_to_colors(magnitudes))
-    Graph.show_graph()
-
-
 def flip_charges(charges):
     for charge in charges:
         charge.repels = not charge.repels
@@ -107,6 +89,25 @@ def get_field_lines(charges):
 
         print("Done.")
     return lines, magnitudes
+
+
+def main(charges):
+    Graph.setup()
+
+    [Graph.draw_charge(charge) for charge in charges]
+
+    has_repels = False
+    for charge in charges:
+        if charge.repels:
+            has_repels = True
+
+    if not has_repels:
+        flip_charges(charges)
+
+    lines, magnitudes = get_field_lines(charges)
+
+    Graph.draw_lines(lines, convert_magnitudes_to_colors(magnitudes) if USE_COLORS else None)
+    Graph.show_graph()
 
 
 if __name__ == '__main__':
