@@ -6,30 +6,30 @@ USE_COLORS = True
 K_CONSTANT = 9 * 10 ** 9
 
 
-def get_points_around_charge(charge):
+def get_points_around_item(item):
     starting_vectors = []
 
-    radius = charge.get_radius()
+    radius = item.get_radius()
 
-    step = 2 * math.pi / (charge.magnitude * STARTING_POINTS_PER_CHARGE)
+    step = 2 * math.pi / (item.magnitude * STARTING_POINTS_PER_CHARGE)
     offset = step / 2
     angle = offset
     while angle < 2 * math.pi:
-        starting_vectors.append(charge.position.add(Vector.create(radius, angle)))
+        starting_vectors.append(item.position.add(Vector.create(radius, angle)))
         angle += step
 
     return starting_vectors
 
 
-def calculate_field(charges, position):
+def calculate_field(items, position):
     net_field = Vector(0, 0)
 
-    for charge in charges:
-        if charge.repels:
-            vector = position.subtract(charge.position)
+    for item in items:
+        if item.repels:
+            vector = position.subtract(item.position)
         else:
-            vector = charge.position.subtract(position)
-        magnitude = K_CONSTANT * charge.magnitude / (vector.get_magnitude() ** 2)
+            vector = item.position.subtract(position)
+        magnitude = K_CONSTANT * item.magnitude / (vector.get_magnitude() ** 2)
         angle = vector.get_angle()
 
         net_field = net_field.add(Vector.create(magnitude, angle))
@@ -37,20 +37,20 @@ def calculate_field(charges, position):
     return net_field
 
 
-def is_valid_end(end_vector, charges):
-    for charge in charges:
-        if charge.is_position_inside_item(end_vector):
+def is_valid_end(end_vector, items):
+    for item in items:
+        if item.is_position_inside_item(end_vector):
             return False
 
     return True
 
 
-def generate_lines_for_starting_point(starting_point, charges, reverse_follow=False):
+def generate_lines_for_starting_point(starting_point, items, reverse_follow=False):
     next_start = starting_point
     lines = []
     magnitudes = []
     for i in range(10000):
-        field = calculate_field(charges, next_start)
+        field = calculate_field(items, next_start)
 
         short_vector = Vector.create(LINE_SEGMENT_LENGTH, field.get_angle())
 
@@ -59,7 +59,7 @@ def generate_lines_for_starting_point(starting_point, charges, reverse_follow=Fa
         else:
             end = next_start.add(short_vector)
 
-        if not is_valid_end(end, charges):
+        if not is_valid_end(end, items):
             break
 
         if Graph.is_within_borders(end):
@@ -71,20 +71,20 @@ def generate_lines_for_starting_point(starting_point, charges, reverse_follow=Fa
     return lines, magnitudes
 
 
-def flip_items(charges):
-    for charge in charges:
-        charge.repels = not charge.repels
+def flip_items(items):
+    for item in items:
+        item.repels = not item.repels
 
 
-def get_field_lines(charges):
+def get_field_lines(items):
     lines = []
     magnitudes = []
-    for index, charge in enumerate(charges):
-        print(f"Calculating field for charge ({index} of {len(charges)})...", end="")
+    for index, item in enumerate(items):
+        print(f"Calculating field for item ({index} of {len(items)})...", end="")
 
-        if charge.repels:
-            for starting_point in get_points_around_charge(charge):
-                (a, b) = generate_lines_for_starting_point(starting_point, charges)
+        if item.repels:
+            for starting_point in get_points_around_item(item):
+                (a, b) = generate_lines_for_starting_point(starting_point, items)
                 lines += a
                 magnitudes += b
 
@@ -115,8 +115,10 @@ def main(items):
 
 if __name__ == '__main__':
     ITEMS = [
-        Item(True, Q_CONSTANT, Vector(0, 1)),
-        Item(False, Q_CONSTANT, Vector(0, -1))
+        Item(True, Q_CONSTANT, Vector(0, 2)),
+        Item(True, 2 * Q_CONSTANT, Vector(0, -2)),
+        Item(False, Q_CONSTANT, Vector(-2, -2)),
+        Item(False, Q_CONSTANT, Vector(2, -2))
     ]
 
     main(ITEMS)

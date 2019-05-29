@@ -2,8 +2,10 @@
 
 This Python script generates electric or gravitational field lines as shown in the pictures below.
 
-![Electron and proton picture](proton_and_electron.png)
+![Electron and proton field line](proton_and_electron.png)
 
-![Uneven charge picutre](uneven_charges.png)
+![Electron with bigger proton field line](uneven_charges.png)
 
-![Two equal charges](two_charges.png)
+![Field lines for two protons](two_charges.png)
+
+![Many charges](many_charges.png)

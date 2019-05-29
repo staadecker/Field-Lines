@@ -5,7 +5,7 @@ import sys
 
 Q_CONSTANT = 1.602 * 10 ** (-19)
 MAGNITUDE_TO_RADIUS_FACTOR = 0.2 / Q_CONSTANT
-SIZE_OF_GRAPH = 4
+SIZE_OF_GRAPH = 5
 
 
 class Vector:
@@ -37,9 +37,9 @@ class Vector:
 
 
 class Item:
-    def __init__(self, repels: bool, magnitude_of_charge, position: Vector):
+    def __init__(self, repels: bool, magnitude, position: Vector):
         self.repels = repels
-        self.magnitude = magnitude_of_charge
+        self.magnitude = magnitude
         self.position = position
 
     def get_radius(self):
@@ -69,9 +69,9 @@ class Graph:
         Graph.axis.add_collection(line_collection)
 
     @staticmethod
-    def draw_item(charge):
-        circle = plt.Circle(charge.position.get_tuple(), charge.get_radius(),
-                            color="g" if charge.repels else "r")
+    def draw_item(item):
+        circle = plt.Circle(item.position.get_tuple(), item.get_radius(),
+                            color="g" if item.repels else "r")
 
         Graph.axis.add_artist(circle)
 
