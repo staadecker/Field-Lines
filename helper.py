@@ -1,11 +1,12 @@
 import math
 import matplotlib.pyplot as plt
 import matplotlib.collections as collections
+import sys
 
 K_CONSTANT = 9 * 10 ** 9
 Q_CONSTANT = 1.602 * 10 ** (-19)
 CHARGE_TO_RADIUS_FACTOR = 0.1 / Q_CONSTANT
-SIZE_OF_GRAPH = 50
+SIZE_OF_GRAPH = 5
 
 
 class Vector:
@@ -79,6 +80,27 @@ class Graph:
         plt.show()
 
 
+def convert_to_rgba(minval, maxval, val, colors):
+    # From https://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
+    # "colors" is a series of RGB colors delineating a series of
+    # adjacent linear color gradients between each pair.
+    # Determine where the given value falls proportionality within
+    # the range from minval->maxval and scale that fractional value
+    # by the total number in the "colors" pallette.
+    i_f = float(val - minval) / float(maxval - minval) * (len(colors) - 1)
+    # Determine the lower index of the pair of color indices this
+    # value corresponds and its fractional distance between the lower
+    # and the upper colors.
+    i, f = int(i_f // 1), i_f % 1  # Split into whole & fractional parts.
+    # Does it fall exactly on one of the color points?
+    if f < sys.float_info.epsilon:
+        (r, g, b) = colors[i]
+        return r / 255, g / 255, b / 255, 1
+    else:  # Otherwise return a color within the range between them.
+        (r1, g1, b1), (r2, g2, b2) = colors[i], colors[i + 1]
+        return int(r1 + f * (r2 - r1)) / 255, int(g1 + f * (g2 - g1)) / 255, int(b1 + f * (b2 - b1)) / 255, 1
+
+
 def convert_magnitudes_to_colors(magnitudes):
     def magnitude_to_radius(magnitude_to_convert):
         return math.sqrt(1 / magnitude_to_convert)
@@ -86,13 +108,8 @@ def convert_magnitudes_to_colors(magnitudes):
     max_radius = magnitude_to_radius(min(magnitudes))
     min_radius = magnitude_to_radius(max(magnitudes))
 
-    span = max_radius - min_radius
-    target_span = 0.9
-    minimum_value = 0.1
-
+    color_code = [(255, 0, 0), (0, 0, 255), (0, 255, 0)]
     colors = []
-
     for magnitude in magnitudes:
-        ratio = -((magnitude_to_radius(magnitude) - min_radius) / span * target_span) + target_span + minimum_value
-        colors.append((ratio, 0, 1-ratio, ratio))
+        colors.append(convert_to_rgba(min_radius, max_radius, magnitude_to_radius(magnitude), color_code))
     return colors

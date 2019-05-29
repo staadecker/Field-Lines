@@ -111,7 +111,7 @@ def get_field_lines(charges):
 
 if __name__ == '__main__':
     CHARGES = [
-        Item(False, Q_CONSTANT, Vector(0, 1)),
+        Item(True, 3 * Q_CONSTANT, Vector(0, 1)),
         Item(False, Q_CONSTANT, Vector(0, -1))
     ]
 
