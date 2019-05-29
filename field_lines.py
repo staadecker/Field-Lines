@@ -1,6 +1,6 @@
 from helper import *
 
-STARTING_POINTS_PER_CHARGE = 8 / Q_CONSTANT
+STARTING_POINTS_PER_CHARGE = 16 / Q_CONSTANT
 LINE_SEGMENT_LENGTH = 0.01
 USE_COLORS = True
 K_CONSTANT = 9 * 10 ** 9
@@ -115,7 +115,7 @@ def main(items):
 
 if __name__ == '__main__':
     ITEMS = [
-        Item(True, 3 * Q_CONSTANT, Vector(0, 1)),
+        Item(True, Q_CONSTANT, Vector(0, 1)),
         Item(False, Q_CONSTANT, Vector(0, -1))
     ]
 

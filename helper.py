@@ -4,8 +4,8 @@ import matplotlib.collections as collections
 import sys
 
 Q_CONSTANT = 1.602 * 10 ** (-19)
-MAGNITUDE_TO_RADIUS_FACTOR = 0.1 / Q_CONSTANT
-SIZE_OF_GRAPH = 5
+MAGNITUDE_TO_RADIUS_FACTOR = 0.2 / Q_CONSTANT
+SIZE_OF_GRAPH = 4
 
 
 class Vector:
