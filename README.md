@@ -1,4 +1,4 @@
-# Field-Lines
+# Field Lines
 
 This Python script generates electric or gravitational field lines as shown in the pictures below.
 
