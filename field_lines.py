@@ -2,7 +2,8 @@ from helper import *
 
 STARTING_POINTS_PER_CHARGE = 8 / Q_CONSTANT
 LINE_SEGMENT_LENGTH = 0.01
-USE_COLORS = False
+USE_COLORS = True
+K_CONSTANT = 9 * 10 ** 9
 
 
 def get_points_around_charge(charge):
@@ -38,7 +39,7 @@ def calculate_field(charges, position):
 
 def is_valid_end(end_vector, charges):
     for charge in charges:
-        if charge.is_coordinates_inside_radius(end_vector):
+        if charge.is_position_inside_item(end_vector):
             return False
 
     return True
@@ -70,7 +71,7 @@ def generate_lines_for_starting_point(starting_point, charges, reverse_follow=Fa
     return lines, magnitudes
 
 
-def flip_charges(charges):
+def flip_items(charges):
     for charge in charges:
         charge.repels = not charge.repels
 
@@ -91,29 +92,31 @@ def get_field_lines(charges):
     return lines, magnitudes
 
 
-def main(charges):
+def main(items):
     Graph.setup()
 
-    [Graph.draw_charge(charge) for charge in charges]
+    [Graph.draw_item(item) for item in items]
 
+    # Check if at least one item repels. If not we need to flip all the items to get some starting points
     has_repels = False
-    for charge in charges:
-        if charge.repels:
+    for item in items:
+        if item.repels:
             has_repels = True
+            break
 
     if not has_repels:
-        flip_charges(charges)
+        flip_items(items)
 
-    lines, magnitudes = get_field_lines(charges)
+    line_segments, magnitudes = get_field_lines(items)
 
-    Graph.draw_lines(lines, convert_magnitudes_to_colors(magnitudes) if USE_COLORS else None)
+    Graph.draw_lines(line_segments, convert_magnitudes_to_colors(magnitudes) if USE_COLORS else None)
     Graph.show_graph()
 
 
 if __name__ == '__main__':
-    CHARGES = [
+    ITEMS = [
         Item(True, 3 * Q_CONSTANT, Vector(0, 1)),
         Item(False, Q_CONSTANT, Vector(0, -1))
     ]
 
-    main(CHARGES)
+    main(ITEMS)

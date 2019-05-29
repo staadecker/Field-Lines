@@ -3,9 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib.collections as collections
 import sys
 
-K_CONSTANT = 9 * 10 ** 9
 Q_CONSTANT = 1.602 * 10 ** (-19)
-CHARGE_TO_RADIUS_FACTOR = 0.1 / Q_CONSTANT
+MAGNITUDE_TO_RADIUS_FACTOR = 0.1 / Q_CONSTANT
 SIZE_OF_GRAPH = 5
 
 
@@ -44,13 +43,15 @@ class Item:
         self.position = position
 
     def get_radius(self):
-        return self.magnitude * CHARGE_TO_RADIUS_FACTOR
+        return self.magnitude * MAGNITUDE_TO_RADIUS_FACTOR
 
-    def is_coordinates_inside_radius(self, position: Vector) -> bool:
+    def is_position_inside_item(self, position: Vector) -> bool:
         return self.position.subtract(position).get_magnitude() < self.get_radius()
 
 
 class Graph:
+    axis = plt.gca()
+
     @staticmethod
     def is_within_borders(end_vector: Vector):
         return -SIZE_OF_GRAPH < end_vector.x < SIZE_OF_GRAPH and -SIZE_OF_GRAPH < end_vector.y < SIZE_OF_GRAPH
@@ -64,16 +65,14 @@ class Graph:
     @staticmethod
     def draw_lines(lines_to_draw, colors=None):
         line_collection = collections.LineCollection(lines_to_draw, colors=colors)
-        axis = plt.gca()
-        axis.add_collection(line_collection)
+        Graph.axis.add_collection(line_collection)
 
     @staticmethod
-    def draw_charge(charge):
-        axis = plt.gca()
+    def draw_item(charge):
         circle = plt.Circle(charge.position.get_tuple(), charge.get_radius(),
                             color="g" if charge.repels else "r")
 
-        axis.add_artist(circle)
+        Graph.axis.add_artist(circle)
 
     @staticmethod
     def show_graph():
@@ -81,7 +80,8 @@ class Graph:
 
 
 def convert_to_rgba(minval, maxval, val, colors):
-    # From https://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
+    # Modified from:
+    # https://stackoverflow.com/questions/20792445/calculate-rgb-value-for-a-range-of-values-to-create-heat-map
     # "colors" is a series of RGB colors delineating a series of
     # adjacent linear color gradients between each pair.
     # Determine where the given value falls proportionality within
